@@ -3,34 +3,88 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Rainbow Budz</title>
-    <!-- Tailwind CSS for clean modern styling -->
+    <title>RBS Grow Shop</title>
+    <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
-    <!-- PapaParse for robust CSV parsing -->
+    <!-- PapaParse for CSV parsing -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.4.1/papaparse.min.js"></script>
+    <style>
+        .slide { display: none; }
+        .slide.active { display: block; }
+    </style>
 </head>
 <body class="bg-gray-50 text-gray-800 font-sans antialiased min-h-screen flex flex-col">
 
     <!-- HEADER -->
     <header class="bg-white shadow-sm sticky top-0 z-30">
-        <div class="max-w-7xl mx-auto px-4 py-4 flex justify-between items-center">
-            <h1 class="text-2xl font-bold tracking-tight text-gray-900">🛍️ Rainbow Budz Home & Garden/h1>
-            <button onclick="toggleCart()" class="relative bg-indigo-600 text-white px-4 py-2 rounded-lg font-medium hover:bg-indigo-700 transition flex items-center gap-2">
-                <span>Cart</span>
-                <span id="cart-badge" class="bg-white text-indigo-600 text-xs font-bold px-2 py-0.5 rounded-full">0</span>
+        <div class="max-w-7xl mx-auto px-4 py-4 flex flex-col sm:flex-row justify-between items-center gap-4">
+            <h1 class="text-2xl font-bold tracking-tight text-emerald-700 flex items-center gap-2">🌱 RBS Grow Shop</h1>
+            
+            <!-- SEARCH BAR -->
+            <div class="w-full sm:w-96">
+                <input type="text" id="search-input" oninput="filterProducts()" placeholder="Search lights, tents, nutrients..." class="w-full border rounded-lg px-4 py-2 text-sm focus:ring-2 focus:ring-emerald-500 focus:outline-none bg-gray-50">
+            </div>
+
+            <button onclick="toggleCart()" class="relative bg-emerald-600 text-white px-5 py-2.5 rounded-lg font-medium hover:bg-emerald-700 transition flex items-center gap-2 shadow-sm">
+                <span>🛒 Cart</span>
+                <span id="cart-badge" class="bg-white text-emerald-600 text-xs font-bold px-2 py-0.5 rounded-full">0</span>
             </button>
         </div>
     </header>
 
-    <!-- MAIN CONTENT -->
+    <!-- HERO SLIDESHOW -->
+    <section class="max-w-7xl mx-auto px-4 mt-6 w-full">
+        <div class="relative rounded-2xl overflow-hidden shadow-lg bg-gray-900 text-white h-72 sm:h-96 flex items-center">
+            <!-- Slide 1 -->
+            <div class="slide active absolute inset-0 transition-opacity duration-700 bg-cover bg-center flex items-center p-8 sm:p-16" style="background-image: linear-gradient(rgba(0,0,0,0.6), rgba(0,0,0,0.6)), url('https://images.unsplash.com/photo-1585320806297-9794b3e4eeae?w=1200');">
+                <div class="max-w-xl">
+                    <span class="bg-emerald-500 text-xs font-bold uppercase tracking-wider px-3 py-1 rounded-full">Pro Growers</span>
+                    <h2 class="text-3xl sm:text-4xl font-extrabold mt-3 mb-2">High-Performance LED Grow Lights</h2>
+                    <p class="text-gray-200 text-sm sm:text-base">Maximize your yields with industry-leading Spider Farmer & Mars Hydro fixtures.</p>
+                </div>
+            </div>
+            <!-- Slide 2 -->
+            <div class="slide absolute inset-0 transition-opacity duration-700 bg-cover bg-center flex items-center p-8 sm:p-16" style="background-image: linear-gradient(rgba(0,0,0,0.6), rgba(0,0,0,0.6)), url('https://images.unsplash.com/photo-1530836369250-ef72a3f5cda8?w=1200');">
+                <div class="max-w-xl">
+                    <span class="bg-emerald-500 text-xs font-bold uppercase tracking-wider px-3 py-1 rounded-full">Environment Control</span>
+                    <h2 class="text-3xl sm:text-4xl font-extrabold mt-3 mb-2">Advanced Ventilation & Tents</h2>
+                    <p class="text-gray-200 text-sm sm:text-base">Complete climate control solutions for optimum plant health and odor elimination.</p>
+                </div>
+            </div>
+            <!-- Slide 3 -->
+            <div class="slide absolute inset-0 transition-opacity duration-700 bg-cover bg-center flex items-center p-8 sm:p-16" style="background-image: linear-gradient(rgba(0,0,0,0.6), rgba(0,0,0,0.6)), url('https://images.unsplash.com/photo-1558788353-f76d92427f16?w=1200');">
+                <div class="max-w-xl">
+                    <span class="bg-emerald-500 text-xs font-bold uppercase tracking-wider px-3 py-1 rounded-full">Organic Nutrients</span>
+                    <h2 class="text-3xl sm:text-4xl font-extrabold mt-3 mb-2">Premium Soils & Boosters</h2>
+                    <p class="text-gray-200 text-sm sm:text-base">Feed your garden right with organic amendments and professional nutrient lines.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- CATEGORIES FILTER TABS -->
+    <nav class="max-w-7xl mx-auto px-4 mt-8 w-full overflow-x-auto">
+        <div id="category-tabs" class="flex gap-2 pb-2 border-b">
+            <button onclick="filterCategory('All')" class="cat-btn px-4 py-2 rounded-lg font-medium text-sm whitespace-nowrap bg-emerald-600 text-white transition">All Products</button>
+            <button onclick="filterCategory('LED Grow Lights')" class="cat-btn px-4 py-2 rounded-lg font-medium text-sm whitespace-nowrap bg-white text-gray-600 border hover:bg-gray-100 transition">LED Grow Lights</button>
+            <button onclick="filterCategory('Ventilation & Air')" class="cat-btn px-4 py-2 rounded-lg font-medium text-sm whitespace-nowrap bg-white text-gray-600 border hover:bg-gray-100 transition">Ventilation & Air</button>
+            <button onclick="filterCategory('Grow Tents & Kits')" class="cat-btn px-4 py-2 rounded-lg font-medium text-sm whitespace-nowrap bg-white text-gray-600 border hover:bg-gray-100 transition">Grow Tents & Kits</button>
+            <button onclick="filterCategory('Nutrients & Soil')" class="cat-btn px-4 py-2 rounded-lg font-medium text-sm whitespace-nowrap bg-white text-gray-600 border hover:bg-gray-100 transition">Nutrients & Soil</button>
+            <button onclick="filterCategory('Pots & Containers')" class="cat-btn px-4 py-2 rounded-lg font-medium text-sm whitespace-nowrap bg-white text-gray-600 border hover:bg-gray-100 transition">Pots & Containers</button>
+            <button onclick="filterCategory('Tools & Equipment')" class="cat-btn px-4 py-2 rounded-lg font-medium text-sm whitespace-nowrap bg-white text-gray-600 border hover:bg-gray-100 transition">Tools & Equipment</button>
+            <button onclick="filterCategory('Accessories & Hardware')" class="cat-btn px-4 py-2 rounded-lg font-medium text-sm whitespace-nowrap bg-white text-gray-600 border hover:bg-gray-100 transition">Accessories & Hardware</button>
+        </div>
+    </nav>
+
+    <!-- MAIN PRODUCT GRID -->
     <main class="max-w-7xl mx-auto px-4 py-8 flex-grow w-full">
-        <div id="loading" class="text-center py-20 text-gray-500 text-lg">Loading products from inventory...</div>
+        <div id="loading" class="text-center py-20 text-gray-500 text-lg">Loading inventory catalog...</div>
         <div id="product-grid" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6"></div>
     </main>
 
     <!-- FOOTER -->
-    <footer class="bg-white border-t py-6 text-center text-sm text-gray-500">
-        &copy; 2026 E-Commerce Store. Powered by GitHub Pages & Google Sheets.
+    <footer class="bg-white border-t py-6 text-center text-sm text-gray-500 mt-auto">
+        &copy; 2026 RBS Grow Shop. Powered by GitHub Pages & Google Sheets.
     </footer>
 
     <!-- SLIDE-OUT CART OVERLAY -->
@@ -45,24 +99,41 @@
             <!-- Cart items render here -->
         </div>
 
-        <div class="p-4 border-t bg-gray-50">
-            <div class="flex justify-between font-bold text-lg mb-4">
+        <div class="p-4 border-t bg-gray-50 space-y-3">
+            <!-- SHIPPING SELECTOR -->
+            <div>
+                <label class="block text-xs font-semibold uppercase text-gray-600 mb-1">Shipping Location</label>
+                <select id="shipping-loc" onchange="updateCartUI()" class="w-full border rounded-lg px-3 py-2 text-sm bg-white focus:ring-2 focus:ring-emerald-500 focus:outline-none">
+                    <option value="Trinidad">Trinidad ($50.00)</option>
+                    <option value="Tobago">Tobago ($65.00)</option>
+                </select>
+            </div>
+
+            <div class="flex justify-between text-sm text-gray-600">
+                <span>Subtotal:</span>
+                <span id="cart-subtotal">$0.00</span>
+            </div>
+            <div class="flex justify-between text-sm text-gray-600">
+                <span>Shipping:</span>
+                <span id="cart-shipping">$50.00</span>
+            </div>
+            <div class="flex justify-between font-bold text-lg pt-2 border-t">
                 <span>Total:</span>
-                <span id="cart-total">$0.00</span>
+                <span id="cart-total" class="text-emerald-700">$0.00</span>
             </div>
 
             <!-- CHECKOUT FORM -->
-            <form id="checkout-form" onsubmit="handleCheckout(event)" class="space-y-3">
+            <form id="checkout-form" onsubmit="handleCheckout(event)" class="space-y-3 pt-2">
                 <div>
                     <label class="block text-xs font-semibold uppercase text-gray-600 mb-1">Full Name</label>
-                    <input type="text" id="cust-name" required class="w-full border rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-indigo-500 focus:outline-none">
+                    <input type="text" id="cust-name" required class="w-full border rounded-lg px-3 py-2 text-sm bg-white focus:ring-2 focus:ring-emerald-500 focus:outline-none">
                 </div>
                 <div>
-                    <label class="block text-xs font-semibold uppercase text-gray-600 mb-1">Email Address</label>
-                    <input type="email" id="cust-email" required class="w-full border rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-indigo-500 focus:outline-none">
+                    <label class="block text-xs font-semibold uppercase text-gray-600 mb-1">Delivery Address</label>
+                    <textarea id="cust-address" required rows="2" placeholder="Street address, city/town..." class="w-full border rounded-lg px-3 py-2 text-sm bg-white focus:ring-2 focus:ring-emerald-500 focus:outline-none resize-none"></textarea>
                 </div>
-                <button type="submit" id="checkout-btn" class="w-full bg-green-600 text-white py-2.5 rounded-lg font-medium hover:bg-green-700 transition shadow-sm">
-                    Complete Secure Checkout
+                <button type="submit" id="checkout-btn" class="w-full bg-emerald-600 text-white py-2.5 rounded-lg font-medium hover:bg-emerald-700 transition shadow-sm">
+                    Complete Order & Send to WhatsApp
                 </button>
             </form>
         </div>
@@ -71,19 +142,29 @@
     <!-- CLIENT SCRIPT -->
     <script>
         // ================= CONFIGURATION =================
-        // Replace with your Published CSV URL from Google Sheets (Tab 1: Inventory)
         const CSV_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vSNlJo2wRFClmsyP9sEssO4VxKnJZLOdS-sVX8esR3gdlyelyVKiD4sCv72uVhzlEbZ3C6RSR8Bjs9-/pub?gid=1598141647&single=true&output=csv";
-        
-        // Replace with your deployed Google Apps Script Web App URL
         const APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbwSgBuImx1QRduKe-lRtHcrdM6jDcDAXrrDpCna8MBA_WgiA6_c7YiG69Yxy9c9McEV/exec";
         // =================================================
 
         let products = [];
         let cart = [];
+        let currentCategory = 'All';
 
         document.addEventListener("DOMContentLoaded", () => {
             fetchProducts();
+            startSlideshow();
         });
+
+        // HERO SLIDESHOW LOGIC
+        function startSlideshow() {
+            let slides = document.querySelectorAll('.slide');
+            let currentSlide = 0;
+            setInterval(() => {
+                slides[currentSlide].classList.remove('active');
+                currentSlide = (currentSlide + 1) % slides.length;
+                slides[currentSlide].classList.add('active');
+            }, 4000);
+        }
 
         function fetchProducts() {
             Papa.parse(CSV_URL, {
@@ -91,7 +172,10 @@
                 header: true,
                 skipEmptyLines: true,
                 complete: function(results) {
-                    products = results.data;
+                    products = results.data.map(p => ({
+                        ...p,
+                        Category: categorizeProduct(p.Name || '')
+                    }));
                     document.getElementById('loading').style.display = 'none';
                     renderProducts();
                 },
@@ -102,11 +186,51 @@
             });
         }
 
+        // SMART CATEGORY ASSIGNMENT
+        function categorizeProduct(name) {
+            const n = name.toLowerCase();
+            if (['ts', 'sp', 'fc', 'fce', 'bloom plus', 'sf', 'se', 'uv', 'rb', 'light', 'lamp', 'fixture'].some(k => n.includes(k))) return 'LED Grow Lights';
+            if (['fan', 'filter', 'combo', 'inline', 'ifresh', 'duct', 'silencer'].some(k => n.includes(k))) return 'Ventilation & Air';
+            if (['2x', '4x', '5x', 'tent', 'tray', 'scrog', 'net', 'drying', 'wedryer'].some(k => n.includes(k))) return 'Grow Tents & Kits';
+            if (['pot', 'fabric', 'saucer', 'smart pot', 'bag', 'container'].some(k => n.includes(k))) return 'Pots & Containers';
+            if (['nute', 'coco', 'soil', 'perlite', 'bio-bizz', 'root', 'powder', 'booster', 'calmag', 'pk', 'micro', 'grow', 'bloom', 'ph', 'organic', '444', '284', 'diatomaceous', 'clonex', 'rockwool', 'boveda', 'neem'].some(k => n.includes(k))) return 'Nutrients & Soil';
+            if (['trimmer', 'scissors', 'microscope', 'loupe', 'timer', 'ph pen', 'tds', 'thermometer', 'hygrometer', 'pump', 'tubing', 'pipette', 'syringe', 'scale', 'spray', 'inkbird', 'apera', 'loop', 'trap', 'cloner'].some(k => n.includes(k))) return 'Tools & Equipment';
+            return 'Accessories & Hardware';
+        }
+
+        function filterCategory(category) {
+            currentCategory = category;
+            document.querySelectorAll('.cat-btn').forEach(btn => {
+                if (btn.innerText.includes(category) || (category === 'All' && btn.innerText.includes('All'))) {
+                    btn.className = "cat-btn px-4 py-2 rounded-lg font-medium text-sm whitespace-nowrap bg-emerald-600 text-white transition";
+                } else {
+                    btn.className = "cat-btn px-4 py-2 rounded-lg font-medium text-sm whitespace-nowrap bg-white text-gray-600 border hover:bg-gray-100 transition";
+                }
+            });
+            renderProducts();
+        }
+
+        function filterProducts() {
+            renderProducts();
+        }
+
         function renderProducts() {
             const grid = document.getElementById('product-grid');
+            const searchQuery = document.getElementById('search-input').value.toLowerCase();
             grid.innerHTML = '';
 
-            products.forEach(product => {
+            const filtered = products.filter(product => {
+                const matchesCat = currentCategory === 'All' || product.Category === currentCategory;
+                const matchesSearch = !searchQuery || (product.Name && product.Name.toLowerCase().includes(searchQuery));
+                return matchesCat && matchesSearch;
+            });
+
+            if (filtered.length === 0) {
+                grid.innerHTML = `<div class="col-span-full text-center py-16 text-gray-400">No products found matching your search.</div>`;
+                return;
+            }
+
+            filtered.forEach(product => {
                 const isOutOfStock = product.Status && product.Status.trim().toLowerCase() === "out of stock";
                 
                 const card = document.createElement('div');
@@ -114,14 +238,15 @@
                 card.innerHTML = `
                     <div class="h-48 bg-gray-100 overflow-hidden relative">
                         <img src="${product['Image URL']}" alt="${product.Name}" class="w-full h-full object-cover">
+                        <span class="absolute top-2 left-2 bg-black bg-opacity-60 text-white text-[10px] font-semibold px-2 py-0.5 rounded">${product.Category}</span>
                     </div>
                     <div class="p-4 flex flex-col flex-grow">
-                        <h3 class="font-semibold text-gray-900 mb-1">${product.Name}</h3>
-                        <p class="text-indigo-600 font-bold mb-4">$${Number(product.Price).toFixed(2)}</p>
+                        <h3 class="font-semibold text-gray-900 mb-1 text-sm line-clamp-2">${product.Name}</h3>
+                        <p class="text-emerald-700 font-bold text-base mb-4">$${Number(product.Price).toFixed(2)}</p>
                         <div class="mt-auto">
                             ${isOutOfStock 
-                                ? `<button disabled class="w-full bg-gray-200 text-gray-400 py-2 rounded-lg font-medium cursor-not-allowed">Out of Stock</button>`
-                                : `<button onclick="addToCart('${product['Product ID']}')" class="w-full bg-indigo-600 text-white py-2 rounded-lg font-medium hover:bg-indigo-700 transition">Add to Cart</button>`
+                                ? `<button disabled class="w-full bg-gray-200 text-gray-400 py-2 rounded-lg font-medium cursor-not-allowed text-sm">Out of Stock</button>`
+                                : `<button onclick="addToCart('${product['Product ID']}')" class="w-full bg-emerald-600 text-white py-2 rounded-lg font-medium hover:bg-emerald-700 transition text-sm">Add to Cart</button>`
                             }
                         </div>
                     </div>
@@ -167,38 +292,48 @@
         function updateCartUI() {
             const badge = document.getElementById('cart-badge');
             const itemsContainer = document.getElementById('cart-items');
+            const subtotalEl = document.getElementById('cart-subtotal');
+            const shippingEl = document.getElementById('cart-shipping');
             const totalEl = document.getElementById('cart-total');
+            const locationSelect = document.getElementById('shipping-loc');
 
             const totalCount = cart.reduce((sum, item) => sum + item.quantity, 0);
             badge.innerText = totalCount;
 
             if (cart.length === 0) {
-                itemsContainer.innerHTML = `<p class="text-center text-gray-400 py-8">Your cart is empty.</p>`;
+                itemsContainer.innerHTML = `<p class="text-center text-gray-400 py-8 text-sm">Your cart is empty.</p>`;
+                subtotalEl.innerText = "$0.00";
+                shippingEl.innerText = "$0.00";
                 totalEl.innerText = "$0.00";
                 return;
             }
 
             let html = '';
-            let grandTotal = 0;
+            let subtotal = 0;
 
             cart.forEach((item, index) => {
                 const itemTotal = item.price * item.quantity;
-                grandTotal += itemTotal;
+                subtotal += itemTotal;
                 html += `
-                    <div class="pt-3 flex justify-between items-center">
+                    <div class="pt-3 flex justify-between items-center text-sm">
                         <div>
-                            <h4 class="font-medium text-sm">${item.name}</h4>
+                            <h4 class="font-medium text-gray-900">${item.name}</h4>
                             <p class="text-xs text-gray-500">$${item.price.toFixed(2)} × ${item.quantity}</p>
                         </div>
                         <div class="flex items-center gap-3">
-                            <span class="font-bold text-sm">$${itemTotal.toFixed(2)}</span>
+                            <span class="font-bold">$${itemTotal.toFixed(2)}</span>
                             <button onclick="removeFromCart(${index})" class="text-red-500 hover:text-red-700 text-xs font-semibold">Remove</button>
                         </div>
                     </div>
                 `;
             });
 
+            const shippingCost = locationSelect.value === 'Tobago' ? 65.00 : 50.00;
+            const grandTotal = subtotal + shippingCost;
+
             itemsContainer.innerHTML = html;
+            subtotalEl.innerText = `$${subtotal.toFixed(2)}`;
+            shippingEl.innerText = `$${shippingCost.toFixed(2)}`;
             totalEl.innerText = `$${grandTotal.toFixed(2)}`;
         }
 
@@ -211,8 +346,15 @@
             event.preventDefault();
             if (cart.length === 0) return;
 
+            let subtotal = 0;
+            cart.forEach(item => { subtotal += (item.price * item.quantity); });
+
+            const locationSelect = document.getElementById('shipping-loc').value;
+            const shippingCost = locationSelect === 'Tobago' ? 65.00 : 50.00;
+            const grandTotal = subtotal + shippingCost;
+
             const name = document.getElementById('cust-name').value;
-            const email = document.getElementById('cust-email').value;
+            const address = document.getElementById('cust-address').value + ` (${locationSelect})`;
             const btn = document.getElementById('checkout-btn');
 
             btn.disabled = true;
@@ -220,7 +362,8 @@
 
             const payload = {
                 name: name,
-                email: email,
+                address: address,
+                phone: "Via WhatsApp",
                 items: cart.map(item => ({
                     productId: item.productId,
                     quantity: item.quantity
@@ -228,21 +371,42 @@
             };
 
             try {
-                const response = await fetch(APPS_SCRIPT_URL, {
+                // Log order in Google Sheet & deduct stock
+                await fetch(APPS_SCRIPT_URL, {
                     method: "POST",
-                    mode: "no-cors", // Required for Google Apps Script Web App endpoints from static frontends
+                    mode: "no-cors",
                     headers: { "Content-Type": "application/json" },
                     body: JSON.stringify(payload)
                 });
 
-                // Note: With 'no-cors', response body cannot be read directly due to browser security restrictions,
-                // but if no network error is thrown, the Apps Script successfully processed and logged the order.
-                alert("🎉 Order placed successfully! Thank you for your purchase.");
+                // Format WhatsApp message
+                const whatsappNumber = "18683423519";
+                
+                let orderSummary = `🌱 *NEW ORDER - RBS GROW SHOP* 🌱\n\n`;
+                orderSummary += `*Name:* ${name}\n`;
+                orderSummary += `*Address:* ${address}\n\n`;
+                orderSummary += `*Items Ordered:*\n`;
+
+                cart.forEach(item => {
+                    const itemTotal = item.price * item.quantity;
+                    orderSummary += `- ${item.name} (x${item.quantity}) - $${itemTotal.toFixed(2)}\n`;
+                });
+
+                orderSummary += `\n*Subtotal:* $${subtotal.toFixed(2)}`;
+                orderSummary += `\n*Shipping (${locationSelect}):* $${shippingCost.toFixed(2)}`;
+                orderSummary += `\n*Total Amount Due: $${grandTotal.toFixed(2)}*`;
+
+                const encodedMessage = encodeURIComponent(orderSummary);
+                const whatsappUrl = `https://wa.me/${whatsappNumber}?text=${encodedMessage}`;
+
+                alert(`🎉 Order placed successfully!\n\nYour Grand Total: $${grandTotal.toFixed(2)} (including $${shippingCost.toFixed(2)} shipping to ${locationSelect})\n\nRedirecting you to WhatsApp.`);
+                
+                window.open(whatsappUrl, '_blank');
+
                 cart = [];
                 updateCartUI();
                 document.getElementById('checkout-form').reset();
                 toggleCart();
-                // Refresh product stock levels from the spreadsheet
                 fetchProducts();
 
             } catch (err) {
@@ -250,7 +414,7 @@
                 alert("Checkout failed. Please check your connection and try again.");
             } finally {
                 btn.disabled = false;
-                btn.innerText = "Complete Secure Checkout";
+                btn.innerText = "Complete Order & Send to WhatsApp";
             }
         }
     </script>
