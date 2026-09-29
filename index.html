@@ -1,0 +1,258 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Modern Storefront</title>
+    <!-- Tailwind CSS for clean modern styling -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- PapaParse for robust CSV parsing -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.4.1/papaparse.min.js"></script>
+</head>
+<body class="bg-gray-50 text-gray-800 font-sans antialiased min-h-screen flex flex-col">
+
+    <!-- HEADER -->
+    <header class="bg-white shadow-sm sticky top-0 z-30">
+        <div class="max-w-7xl mx-auto px-4 py-4 flex justify-between items-center">
+            <h1 class="text-2xl font-bold tracking-tight text-gray-900">🛍️ Storefront</h1>
+            <button onclick="toggleCart()" class="relative bg-indigo-600 text-white px-4 py-2 rounded-lg font-medium hover:bg-indigo-700 transition flex items-center gap-2">
+                <span>Cart</span>
+                <span id="cart-badge" class="bg-white text-indigo-600 text-xs font-bold px-2 py-0.5 rounded-full">0</span>
+            </button>
+        </div>
+    </header>
+
+    <!-- MAIN CONTENT -->
+    <main class="max-w-7xl mx-auto px-4 py-8 flex-grow w-full">
+        <div id="loading" class="text-center py-20 text-gray-500 text-lg">Loading products from inventory...</div>
+        <div id="product-grid" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6"></div>
+    </main>
+
+    <!-- FOOTER -->
+    <footer class="bg-white border-t py-6 text-center text-sm text-gray-500">
+        &copy; 2026 E-Commerce Store. Powered by GitHub Pages & Google Sheets.
+    </footer>
+
+    <!-- SLIDE-OUT CART OVERLAY -->
+    <div id="cart-overlay" class="fixed inset-0 bg-black bg-opacity-50 z-40 hidden transition-opacity" onclick="toggleCart()"></div>
+    <div id="cart-drawer" class="fixed right-0 top-0 h-full w-full max-w-md bg-white z-50 shadow-2xl transform translate-x-full transition-transform duration-300 flex flex-col">
+        <div class="p-4 border-b flex justify-between items-center bg-gray-50">
+            <h2 class="text-lg font-bold">Your Shopping Cart</h2>
+            <button onclick="toggleCart()" class="text-gray-400 hover:text-gray-600 text-2xl font-bold">&times;</button>
+        </div>
+
+        <div id="cart-items" class="p-4 flex-grow overflow-y-auto space-y-4 divide-y">
+            <!-- Cart items render here -->
+        </div>
+
+        <div class="p-4 border-t bg-gray-50">
+            <div class="flex justify-between font-bold text-lg mb-4">
+                <span>Total:</span>
+                <span id="cart-total">$0.00</span>
+            </div>
+
+            <!-- CHECKOUT FORM -->
+            <form id="checkout-form" onsubmit="handleCheckout(event)" class="space-y-3">
+                <div>
+                    <label class="block text-xs font-semibold uppercase text-gray-600 mb-1">Full Name</label>
+                    <input type="text" id="cust-name" required class="w-full border rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-indigo-500 focus:outline-none">
+                </div>
+                <div>
+                    <label class="block text-xs font-semibold uppercase text-gray-600 mb-1">Email Address</label>
+                    <input type="email" id="cust-email" required class="w-full border rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-indigo-500 focus:outline-none">
+                </div>
+                <button type="submit" id="checkout-btn" class="w-full bg-green-600 text-white py-2.5 rounded-lg font-medium hover:bg-green-700 transition shadow-sm">
+                    Complete Secure Checkout
+                </button>
+            </form>
+        </div>
+    </div>
+
+    <!-- CLIENT SCRIPT -->
+    <script>
+        // ================= CONFIGURATION =================
+        // Replace with your Published CSV URL from Google Sheets (Tab 1: Inventory)
+        const CSV_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vSNlJo2wRFClmsyP9sEssO4VxKnJZLOdS-sVX8esR3gdlyelyVKiD4sCv72uVhzlEbZ3C6RSR8Bjs9-/pub?gid=1598141647&single=true&output=csv";
+        
+        // Replace with your deployed Google Apps Script Web App URL
+        const APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbwSgBuImx1QRduKe-lRtHcrdM6jDcDAXrrDpCna8MBA_WgiA6_c7YiG69Yxy9c9McEV/exec";
+        // =================================================
+
+        let products = [];
+        let cart = [];
+
+        document.addEventListener("DOMContentLoaded", () => {
+            fetchProducts();
+        });
+
+        function fetchProducts() {
+            Papa.parse(CSV_URL, {
+                download: true,
+                header: true,
+                skipEmptyLines: true,
+                complete: function(results) {
+                    products = results.data;
+                    document.getElementById('loading').style.display = 'none';
+                    renderProducts();
+                },
+                error: function(err) {
+                    document.getElementById('loading').innerHTML = `<span class="text-red-500">Failed to load inventory. Please check your CSV URL.</span>`;
+                    console.error(err);
+                }
+            });
+        }
+
+        function renderProducts() {
+            const grid = document.getElementById('product-grid');
+            grid.innerHTML = '';
+
+            products.forEach(product => {
+                const isOutOfStock = product.Status && product.Status.trim().toLowerCase() === "out of stock";
+                
+                const card = document.createElement('div');
+                card.className = "bg-white border rounded-xl overflow-hidden shadow-sm hover:shadow-md transition flex flex-col";
+                card.innerHTML = `
+                    <div class="h-48 bg-gray-100 overflow-hidden relative">
+                        <img src="${product['Image URL']}" alt="${product.Name}" class="w-full h-full object-cover">
+                    </div>
+                    <div class="p-4 flex flex-col flex-grow">
+                        <h3 class="font-semibold text-gray-900 mb-1">${product.Name}</h3>
+                        <p class="text-indigo-600 font-bold mb-4">$${Number(product.Price).toFixed(2)}</p>
+                        <div class="mt-auto">
+                            ${isOutOfStock 
+                                ? `<button disabled class="w-full bg-gray-200 text-gray-400 py-2 rounded-lg font-medium cursor-not-allowed">Out of Stock</button>`
+                                : `<button onclick="addToCart('${product['Product ID']}')" class="w-full bg-indigo-600 text-white py-2 rounded-lg font-medium hover:bg-indigo-700 transition">Add to Cart</button>`
+                            }
+                        </div>
+                    </div>
+                `;
+                grid.appendChild(card);
+            });
+        }
+
+        function toggleCart() {
+            const overlay = document.getElementById('cart-overlay');
+            const drawer = document.getElementById('cart-drawer');
+            const isOpen = !drawer.classList.contains('translate-x-full');
+
+            if (isOpen) {
+                drawer.classList.add('translate-x-full');
+                overlay.classList.add('hidden');
+            } else {
+                drawer.classList.remove('translate-x-full');
+                overlay.classList.remove('hidden');
+            }
+        }
+
+        function addToCart(productId) {
+            const product = products.find(p => p['Product ID'] === productId);
+            if (!product) return;
+
+            const existingItem = cart.find(item => item.productId === productId);
+            if (existingItem) {
+                existingItem.quantity += 1;
+            } else {
+                cart.push({
+                    productId: product['Product ID'],
+                    name: product.Name,
+                    price: Number(product.Price),
+                    quantity: 1
+                });
+            }
+
+            updateCartUI();
+            toggleCart();
+        }
+
+        function updateCartUI() {
+            const badge = document.getElementById('cart-badge');
+            const itemsContainer = document.getElementById('cart-items');
+            const totalEl = document.getElementById('cart-total');
+
+            const totalCount = cart.reduce((sum, item) => sum + item.quantity, 0);
+            badge.innerText = totalCount;
+
+            if (cart.length === 0) {
+                itemsContainer.innerHTML = `<p class="text-center text-gray-400 py-8">Your cart is empty.</p>`;
+                totalEl.innerText = "$0.00";
+                return;
+            }
+
+            let html = '';
+            let grandTotal = 0;
+
+            cart.forEach((item, index) => {
+                const itemTotal = item.price * item.quantity;
+                grandTotal += itemTotal;
+                html += `
+                    <div class="pt-3 flex justify-between items-center">
+                        <div>
+                            <h4 class="font-medium text-sm">${item.name}</h4>
+                            <p class="text-xs text-gray-500">$${item.price.toFixed(2)} × ${item.quantity}</p>
+                        </div>
+                        <div class="flex items-center gap-3">
+                            <span class="font-bold text-sm">$${itemTotal.toFixed(2)}</span>
+                            <button onclick="removeFromCart(${index})" class="text-red-500 hover:text-red-700 text-xs font-semibold">Remove</button>
+                        </div>
+                    </div>
+                `;
+            });
+
+            itemsContainer.innerHTML = html;
+            totalEl.innerText = `$${grandTotal.toFixed(2)}`;
+        }
+
+        function removeFromCart(index) {
+            cart.splice(index, 1);
+            updateCartUI();
+        }
+
+        async function handleCheckout(event) {
+            event.preventDefault();
+            if (cart.length === 0) return;
+
+            const name = document.getElementById('cust-name').value;
+            const email = document.getElementById('cust-email').value;
+            const btn = document.getElementById('checkout-btn');
+
+            btn.disabled = true;
+            btn.innerText = "Processing Order...";
+
+            const payload = {
+                name: name,
+                email: email,
+                items: cart.map(item => ({
+                    productId: item.productId,
+                    quantity: item.quantity
+                }))
+            };
+
+            try {
+                const response = await fetch(APPS_SCRIPT_URL, {
+                    method: "POST",
+                    mode: "no-cors", // Required for Google Apps Script Web App endpoints from static frontends
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify(payload)
+                });
+
+                // Note: With 'no-cors', response body cannot be read directly due to browser security restrictions,
+                // but if no network error is thrown, the Apps Script successfully processed and logged the order.
+                alert("🎉 Order placed successfully! Thank you for your purchase.");
+                cart = [];
+                updateCartUI();
+                document.getElementById('checkout-form').reset();
+                toggleCart();
+                // Refresh product stock levels from the spreadsheet
+                fetchProducts();
+
+            } catch (err) {
+                console.error(err);
+                alert("Checkout failed. Please check your connection and try again.");
+            } finally {
+                btn.disabled = false;
+                btn.innerText = "Complete Secure Checkout";
+            }
+        }
+    </script>
+</body>
+</html>
